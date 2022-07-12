@@ -12,10 +12,9 @@ const authenticate = async (req, res, next) => {
       if (session) {
         req.user = session.user;
         req.sessionId = sessionId;
-        next();
       }
     }
-    throw new Error("세션이 존재하지 않습니다.");
+    next();
   } catch (error) {
     next(error);
   }

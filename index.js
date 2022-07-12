@@ -3,18 +3,25 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const { authenticate } = require("./middleware/authenticate.js");
+const { userRouter, sessionRouter, postRouter } = require("./routes");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
-    console.log("Mongo DB connection successful!");
+    console.log("MongoDB connection successful!");
 
-    app.use("/public", express.static("public"));
+    // middlewares
     app.use(express.json());
     app.use(cookieParser());
     app.use(authenticate);
+    app.use("/public", express.static("public"));
+
+    // routes
+    app.use("/api/user", userRouter);
+    app.use("/api/session", sessionRouter);
+    app.use("/api/post", postRouter);
 
     app.listen(PORT, () => {
       console.log(`Server is listening on port ${PORT}`);

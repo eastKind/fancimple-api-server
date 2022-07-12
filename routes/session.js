@@ -14,7 +14,7 @@ router.get("/login", async (req, res) => {
         const session = await Session.create({ user: user.id });
         res
           .cookie("sessionId", session.id, {
-            expires: new Date(Date.now()) + 86400,
+            expires: new Date(Date.now() + 86400),
           })
           .send({ message: "success" });
       }
@@ -25,6 +25,7 @@ router.get("/login", async (req, res) => {
 });
 
 router.delete("/logout", async (req, res) => {
+  if (!req.sessionId) throw new Error("세션이 존재하지 않습니다.");
   try {
     await Session.findByIdAndRemove(req.sessionId);
     res.clearCookie("sessionId");

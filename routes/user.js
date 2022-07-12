@@ -4,7 +4,16 @@ const { User } = require("../models");
 
 const router = express.Router();
 
-router.post("/regiser", async (req, res) => {
+router.get("/me", async (req, res) => {
+  if (!req.sessionId) throw new Error("세션이 존재하지 않습니다.");
+  try {
+    res.send({ message: "success", user: req.user });
+  } catch (error) {
+    res.status(400).send({ message: error.message });
+  }
+});
+
+router.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
     const hash = await bcrypt.hash(password, 10);
@@ -15,7 +24,8 @@ router.post("/regiser", async (req, res) => {
   }
 });
 
-router.put("/edit", async (req, res) => {
+router.patch("/edit", async (req, res) => {
+  if (!req.sessionId) throw new Error("세션이 존재하지 않습니다.");
   try {
     const doc = {};
     Object.keys(req.body).forEach((key) => {

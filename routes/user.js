@@ -40,4 +40,20 @@ router.patch("/", upload.single("image"), async (req, res) => {
   }
 });
 
+router.patch("/follow", async (req, res) => {
+  try {
+    if (!req.sessionId) throw new Error("Invalid Session");
+    const { targetId } = req.body;
+    await User.findByIdAndUpdate(targetId, {
+      $push: { followers: req.user.id },
+    });
+    await User.findByIdAndUpdate(req.user.id, {
+      $push: { followings: targetId },
+    });
+    res.send({ message: "success" });
+  } catch (error) {
+    res.status(400).send({ message: "failure", error });
+  }
+});
+
 module.exports = router;

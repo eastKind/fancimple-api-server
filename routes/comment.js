@@ -48,4 +48,22 @@ router.patch("/:id", async (req, res) => {
   }
 });
 
+router.patch("/:id/like", async (req, res) => {
+  try {
+    if (!req.sessionId) throw new Error("Invalid Session");
+    const { id } = req.params;
+    const { isLike } = req.body;
+    const comment = await Comment.findByIdAndUpdate(
+      id,
+      {
+        $inc: { likeCount: isLike ? 1 : -1 },
+      },
+      { new: true }
+    );
+    res.send({ message: "success", comment });
+  } catch (error) {
+    res.status(400).send({ message: "failure", error });
+  }
+});
+
 module.exports = router;

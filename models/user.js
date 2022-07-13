@@ -20,6 +20,18 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: `${BASIC_URL}/public/person.png`,
     },
+    followings: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    followers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { versionKey: false, timestamps: true }
 );

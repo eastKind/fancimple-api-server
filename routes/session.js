@@ -25,8 +25,8 @@ router.get("/", async (req, res) => {
 });
 
 router.delete("/", async (req, res) => {
-  if (!req.sessionId) throw new Error("인증 실패");
   try {
+    if (!req.sessionId) throw new Error("Invalid Session");
     await Session.findByIdAndRemove(req.sessionId);
     res.clearCookie("sessionId");
     res.send({ message: "success" });

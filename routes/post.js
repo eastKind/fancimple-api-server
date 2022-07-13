@@ -8,8 +8,8 @@ const router = express.Router();
 const Bucket = process.env.BUCKET;
 
 router.get("/", async (req, res) => {
-  if (!req.sessionId) throw new Error("인증 실패");
   try {
+    if (!req.sessionId) throw new Error("Invalid Session");
     const { cursor, limit } = req.query;
     const posts = await Post.find(cursor ? { _id: { $lt: cursor } } : {})
       .populate("writer", "-password")
@@ -18,24 +18,24 @@ router.get("/", async (req, res) => {
     const paging = await getPaging(Post, cursor, limit);
     res.send({ message: "success", posts, paging });
   } catch (error) {
-    res.status(400).send({ message: error.message });
+    res.status(400).send({ message: "failure", error });
   }
 });
 
 router.get("/:id", async (req, res) => {
-  if (!req.sessionId) throw new Error("인증 실패");
   try {
+    if (!req.sessionId) throw new Error("Invalid Session");
     const { id } = req.params;
     const post = await Post.findById(id).populate("writer", "-password");
     res.send({ message: "success", post });
   } catch (error) {
-    res.status(400).send({ message: error.message });
+    res.status(400).send({ message: "failure", error });
   }
 });
 
 router.post("/", upload.array("image"), async (req, res) => {
-  if (!req.sessionId) throw new Error("인증 실패");
   try {
+    if (!req.sessionId) throw new Error("Invalid Session");
     const { title, contents = "" } = req.body;
     const images = req.files.map((file) => ({
       url: file.location,
@@ -49,13 +49,13 @@ router.post("/", upload.array("image"), async (req, res) => {
     });
     res.send({ message: "success", post });
   } catch (error) {
-    res.status(400).send({ message: error.message });
+    res.status(400).send({ message: "failure", error });
   }
 });
 
 router.delete("/:id", async (req, res) => {
-  if (!req.sessionId) throw new Error("인증 실패");
   try {
+    if (!req.sessionId) throw new Error("Invalid Session");
     const { id } = req.params;
     const post = await Post.findByIdAndRemove(id);
     await Promise.all(
@@ -65,13 +65,13 @@ router.delete("/:id", async (req, res) => {
     );
     res.send({ message: "success" });
   } catch (error) {
-    res.status(400).send({ message: error.message });
+    res.status(400).send({ message: "failure", error });
   }
 });
 
 router.patch("/:id", async (req, res, next) => {
-  if (!req.sessionId) throw new Error("인증 실패");
   try {
+    if (!req.sessionId) throw new Error("Invalid Session");
     const { id } = req.params;
     const { title, contents, deletedKeys } = req.body;
 
@@ -92,7 +92,7 @@ router.patch("/:id", async (req, res, next) => {
       next();
     }
   } catch (error) {
-    res.status(400).send({ message: error.message });
+    res.status(400).send({ message: "failure", error });
   }
 });
 
@@ -114,7 +114,7 @@ router.patch("/:id", async (req, res) => {
 
     res.send({ message: "success" });
   } catch (error) {
-    res.status(400).send({ message: error.message });
+    res.status(400).send({ message: "failure", error });
   }
 });
 

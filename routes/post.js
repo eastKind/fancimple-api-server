@@ -12,7 +12,8 @@ router.get("/", async (req, res) => {
     if (!req.sessionId) throw new Error("Invalid Session");
     const { cursor, limit } = req.query;
     const posts = await Post.find(cursor ? { _id: { $lt: cursor } } : {})
-      .populate("writer", "-password")
+      .populate("writer", "name email photoUrl")
+      .populate("comments", "-post")
       .sort({ _id: -1 })
       .limit(limit);
     const paging = await getPaging(Post, cursor, limit);

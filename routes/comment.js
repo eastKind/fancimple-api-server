@@ -47,3 +47,5 @@ router.patch("/:id", async (req, res) => {
     res.status(400).send({ message: "failure", error });
   }
 });
+
+module.exports = router;

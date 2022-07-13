@@ -32,7 +32,7 @@ router.patch("/edit", async (req, res) => {
       doc[key] = req.body[key];
     });
     const user = await User.findByIdAndUpdate(req.user.id, doc, {
-      returnDocument: "after",
+      new: true,
     });
     res.send({ message: "success", user });
   } catch (error) {

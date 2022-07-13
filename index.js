@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const { authenticate } = require("./middleware/authenticate.js");
 const { userRouter, sessionRouter, postRouter } = require("./routes");
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -12,11 +13,13 @@ mongoose
   .then(() => {
     console.log("MongoDB connection successful!");
 
+    // static
+    app.use("/public", express.static("public"));
+
     // middlewares
     app.use(express.json());
     app.use(cookieParser());
     app.use(authenticate);
-    app.use("/public", express.static("public"));
 
     // routes
     app.use("/api/user", userRouter);

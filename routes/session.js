@@ -4,7 +4,7 @@ const { User, Session } = require("../models");
 
 const router = express.Router();
 
-router.get("/login", async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
@@ -24,8 +24,8 @@ router.get("/login", async (req, res) => {
   }
 });
 
-router.delete("/logout", async (req, res) => {
-  if (!req.sessionId) throw new Error("세션이 존재하지 않습니다.");
+router.delete("/", async (req, res) => {
+  if (!req.sessionId) throw new Error("인증 실패");
   try {
     await Session.findByIdAndRemove(req.sessionId);
     res.clearCookie("sessionId");

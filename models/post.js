@@ -9,7 +9,8 @@ const postSchema = new mongoose.Schema(
     contents: String,
     images: [
       {
-        type: String,
+        url: String,
+        key: String,
       },
     ],
     writer: {

@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
+const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const { authenticate } = require("./middleware/authenticate.js");
 const {
@@ -18,10 +19,9 @@ mongoose
   .then(() => {
     console.log("MongoDB connection successful!");
 
-    // static
-    app.use("/public", express.static("public"));
-
     // middlewares
+    app.use(cors({ origin: "http://localhost:8080", credentials: true }));
+    app.use("/public", express.static("public"));
     app.use(express.json());
     app.use(cookieParser());
     app.use(authenticate);

@@ -4,7 +4,7 @@ const { User, Session } = require("../models");
 
 const router = express.Router();
 
-router.get("/", async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
@@ -15,6 +15,8 @@ router.get("/", async (req, res) => {
         res
           .cookie("sessionId", session.id, {
             expires: new Date(Date.now() + 86400),
+            domain: "localhost",
+            path: "/",
           })
           .send({ message: "success" });
       }

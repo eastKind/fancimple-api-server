@@ -23,6 +23,24 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/profile", async (req, res) => {
+  try {
+    if (!req.sessionId) throw new Error("Invalid Session");
+    const { cursor, limit } = req.query;
+    const filter = { writer: req.user.id };
+    if (cursor) filter._id = { $lt: cursor };
+    const posts = await Post.find(filter)
+      .populate("comments", "-post")
+      .select("-writer")
+      .sort({ _id: -1 })
+      .limit(limit);
+    const paging = await getPaging(Post, cursor, limit);
+    res.send({ message: "success", posts, paging });
+  } catch (error) {
+    res.status(400).send({ message: "failure", error });
+  }
+});
+
 router.get("/:id", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");

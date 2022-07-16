@@ -5,6 +5,7 @@ const upload = require("../middleware/upload.js");
 
 const router = express.Router();
 
+// get me
 router.get("/", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
@@ -14,6 +15,19 @@ router.get("/", async (req, res) => {
   }
 });
 
+// get other
+router.get("/:id", async (req, res) => {
+  try {
+    if (!req.sessionId) throw new Error("Invalid Session");
+    const { id } = req.params;
+    const user = await User.findById(id);
+    res.send({ message: "success", user });
+  } catch (error) {
+    res.status(400).send({ message: "failure", error });
+  }
+});
+
+// sign up
 router.post("/", async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -25,6 +39,7 @@ router.post("/", async (req, res) => {
   }
 });
 
+// modify profile
 router.patch("/", upload.single("image"), async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
@@ -40,6 +55,7 @@ router.patch("/", upload.single("image"), async (req, res) => {
   }
 });
 
+// follow
 router.patch("/follow", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");

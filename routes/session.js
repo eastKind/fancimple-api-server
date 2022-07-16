@@ -14,7 +14,7 @@ router.post("/", async (req, res) => {
         const session = await Session.create({ user: user.id });
         res
           .cookie("sessionId", session.id, {
-            expires: new Date(Date.now() + 86400),
+            expires: new Date(Date.now() + 86400000),
             domain: "localhost",
             path: "/",
           })

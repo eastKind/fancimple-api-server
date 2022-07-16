@@ -7,7 +7,7 @@ const authenticate = async (req, res, next) => {
     if (isValidObjectId(sessionId)) {
       const session = await Session.findById(sessionId).populate(
         "user",
-        "-password"
+        "-password -createdAt -updatedAt"
       );
       if (session) {
         req.user = session.user;

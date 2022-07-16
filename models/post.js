@@ -7,6 +7,7 @@ const postSchema = new mongoose.Schema(
       required: true,
     },
     contents: String,
+    thumbnail: String,
     images: [
       {
         url: String,

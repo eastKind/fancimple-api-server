@@ -5,12 +5,9 @@ const authenticate = async (req, res, next) => {
   try {
     const { sessionId } = req.cookies;
     if (isValidObjectId(sessionId)) {
-      const session = await Session.findById(sessionId).populate(
-        "user",
-        "-password -createdAt -updatedAt"
-      );
+      const session = await Session.findById(sessionId);
       if (session) {
-        req.user = session.user;
+        req.userId = session.user.id;
         req.sessionId = sessionId;
       }
     }

@@ -12,26 +12,8 @@ router.get("/", async (req, res) => {
     if (!req.sessionId) throw new Error("Invalid Session");
     const { cursor, limit } = req.query;
     const posts = await Post.find(cursor ? { _id: { $lt: cursor } } : {})
-      .populate("writer", "name email photoUrl")
-      .populate("comments", "-post")
-      .sort({ _id: -1 })
-      .limit(limit);
-    const paging = await getPaging(Post, cursor, limit);
-    res.send({ message: "success", posts, paging });
-  } catch (error) {
-    res.status(400).send({ message: "failure", error });
-  }
-});
-
-router.get("/profile", async (req, res) => {
-  try {
-    if (!req.sessionId) throw new Error("Invalid Session");
-    const { cursor, limit } = req.query;
-    const filter = { writer: req.user.id };
-    if (cursor) filter._id = { $lt: cursor };
-    const posts = await Post.find(filter)
-      .populate("comments", "-post")
-      .select("-writer")
+      .populate({ path: "writer", select: "_id name photoUrl" })
+      .select("-thumbnail -comments")
       .sort({ _id: -1 })
       .limit(limit);
     const paging = await getPaging(Post, cursor, limit);
@@ -45,7 +27,14 @@ router.get("/:id", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
     const { id } = req.params;
-    const post = await Post.findById(id).populate("writer", "-password");
+    const post = await Post.findById(id)
+      .populate({ path: "writer", select: "_id name photoUrl" })
+      .populate({
+        path: "comments",
+        select: "-post",
+        populate: { path: "writer", select: "_id name photoUrl" },
+        options: { limit: 10 },
+      });
     res.send({ message: "success", post });
   } catch (error) {
     res.status(400).send({ message: "failure", error });
@@ -64,7 +53,7 @@ router.post("/", upload.array("image"), async (req, res) => {
       title,
       contents,
       images,
-      writer: req.user.id,
+      writer: req.userId,
     });
     res.send({ message: "success", post });
   } catch (error) {

@@ -9,7 +9,29 @@ const router = express.Router();
 router.get("/", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
-    res.send({ message: "success", user: req.user });
+    const user = User.findById(req.userId)
+      .populate({
+        path: "followings",
+        select: "_id name photoUrl",
+        options: {
+          limit: 10,
+        },
+      })
+      .populate({
+        path: "followers",
+        select: "_id name photoUrl",
+        options: {
+          limit: 10,
+        },
+      })
+      .populate({
+        path: "posts",
+        select: "_id thumbnail likeCount commentCount",
+        opptions: {
+          limit: 10,
+        },
+      });
+    res.send({ message: "success", user });
   } catch (error) {
     res.status(400).send({ message: "failure", error });
   }
@@ -20,7 +42,28 @@ router.get("/:id", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
     const { id } = req.params;
-    const user = await User.findById(id);
+    const user = await User.findById(id)
+      .populate({
+        path: "followings",
+        select: "_id name photoUrl",
+        options: {
+          limit: 10,
+        },
+      })
+      .populate({
+        path: "followers",
+        select: "_id name photoUrl",
+        options: {
+          limit: 10,
+        },
+      })
+      .populate({
+        path: "posts",
+        select: "_id thumbnail likeCount commentCount",
+        opptions: {
+          limit: 10,
+        },
+      });
     res.send({ message: "success", user });
   } catch (error) {
     res.status(400).send({ message: "failure", error });
@@ -46,7 +89,7 @@ router.patch("/", upload.single("image"), async (req, res) => {
     const { name, password } = req.body;
     const doc = { name, password };
     if (req.file) doc.photoUrl = req.file.location;
-    const user = await User.findByIdAndUpdate(req.user.id, doc, {
+    const user = await User.findByIdAndUpdate(req.userId, doc, {
       new: true,
     });
     res.send({ message: "success", user });
@@ -61,9 +104,9 @@ router.patch("/follow", async (req, res) => {
     if (!req.sessionId) throw new Error("Invalid Session");
     const { targetId } = req.body;
     await User.findByIdAndUpdate(targetId, {
-      $push: { followers: req.user.id },
+      $push: { followers: req.userId },
     });
-    await User.findByIdAndUpdate(req.user.id, {
+    await User.findByIdAndUpdate(req.userId, {
       $push: { followings: targetId },
     });
     res.send({ message: "success" });

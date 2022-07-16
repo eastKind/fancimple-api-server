@@ -6,7 +6,7 @@ router.post("/", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
     const { postId, contents } = req.body;
-    const comment = await Comment.create({ contents, writer: req.user.id });
+    const comment = await Comment.create({ contents, writer: req.userId });
     await Post.findByIdAndUpdate(postId, {
       $push: { comments: comment.id },
       $inc: { commentCount: 1 },

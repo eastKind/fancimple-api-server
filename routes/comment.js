@@ -13,7 +13,7 @@ router.post("/", async (req, res) => {
     });
     res.send({ message: "success", comment });
   } catch (error) {
-    res.status(400).send({ message: "failure", error });
+    res.status(400).send({ message: error.message });
   }
 });
 
@@ -28,7 +28,7 @@ router.delete("/:id", async (req, res) => {
     });
     res.send({ message: "success" });
   } catch (error) {
-    res.status(400).send({ message: "failure", error });
+    res.status(400).send({ message: error.message });
   }
 });
 
@@ -44,7 +44,7 @@ router.patch("/:id", async (req, res) => {
     );
     res.send({ message: "success", comment });
   } catch (error) {
-    res.status(400).send({ message: "failure", error });
+    res.status(400).send({ message: error.message });
   }
 });
 
@@ -62,7 +62,7 @@ router.patch("/:id/like", async (req, res) => {
     );
     res.send({ message: "success", comment });
   } catch (error) {
-    res.status(400).send({ message: "failure", error });
+    res.status(400).send({ message: error.message });
   }
 });
 

@@ -7,7 +7,7 @@ const authenticate = async (req, res, next) => {
     if (isValidObjectId(sessionId)) {
       const session = await Session.findById(sessionId);
       if (session) {
-        req.userId = session.user.id;
+        req.userId = session.user;
         req.sessionId = sessionId;
       }
     }

@@ -19,7 +19,7 @@ router.get("/", async (req, res) => {
     const paging = await getPaging(Post, cursor, limit);
     res.send({ message: "success", posts, paging });
   } catch (error) {
-    res.status(400).send({ message: "failure", error });
+    res.status(400).send({ message: error.message });
   }
 });
 
@@ -37,7 +37,7 @@ router.get("/:id", async (req, res) => {
       });
     res.send({ message: "success", post });
   } catch (error) {
-    res.status(400).send({ message: "failure", error });
+    res.status(400).send({ message: error.message });
   }
 });
 
@@ -57,7 +57,7 @@ router.post("/", upload.array("image"), async (req, res) => {
     });
     res.send({ message: "success", post });
   } catch (error) {
-    res.status(400).send({ message: "failure", error });
+    res.status(400).send({ message: error.message });
   }
 });
 
@@ -73,7 +73,7 @@ router.delete("/:id", async (req, res) => {
     );
     res.send({ message: "success" });
   } catch (error) {
-    res.status(400).send({ message: "failure", error });
+    res.status(400).send({ message: error.message });
   }
 });
 
@@ -100,7 +100,7 @@ router.patch("/:id", async (req, res, next) => {
       next();
     }
   } catch (error) {
-    res.status(400).send({ message: "failure", error });
+    res.status(400).send({ message: error.message });
   }
 });
 
@@ -122,7 +122,7 @@ router.patch("/:id", async (req, res) => {
 
     res.send({ message: "success" });
   } catch (error) {
-    res.status(400).send({ message: "failure", error });
+    res.status(400).send({ message: error.message });
   }
 });
 
@@ -138,7 +138,7 @@ router.patch("/:id/like", async (req, res) => {
     );
     res.send({ message: "success", post });
   } catch (error) {
-    res.status(400).send({ message: "failure", error });
+    res.status(400).send({ message: error.message });
   }
 });
 

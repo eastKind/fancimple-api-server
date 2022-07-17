@@ -9,31 +9,31 @@ const router = express.Router();
 router.get("/", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
-    const user = User.findById(req.userId)
+    const user = await User.findById(req.userId)
       .populate({
         path: "followings",
-        select: "_id name photoUrl",
+        select: "id name photoUrl",
         options: {
           limit: 10,
         },
       })
       .populate({
         path: "followers",
-        select: "_id name photoUrl",
+        select: "id name photoUrl",
         options: {
           limit: 10,
         },
       })
       .populate({
         path: "posts",
-        select: "_id thumbnail likeCount commentCount",
+        select: "id thumbnail likeCount commentCount",
         opptions: {
           limit: 10,
         },
       });
     res.send({ message: "success", user });
   } catch (error) {
-    res.status(400).send({ message: "failure", error });
+    res.status(400).send({ message: error.message });
   }
 });
 
@@ -45,28 +45,28 @@ router.get("/:id", async (req, res) => {
     const user = await User.findById(id)
       .populate({
         path: "followings",
-        select: "_id name photoUrl",
+        select: "id name photoUrl",
         options: {
           limit: 10,
         },
       })
       .populate({
         path: "followers",
-        select: "_id name photoUrl",
+        select: "id name photoUrl",
         options: {
           limit: 10,
         },
       })
       .populate({
         path: "posts",
-        select: "_id thumbnail likeCount commentCount",
+        select: "id thumbnail likeCount commentCount",
         opptions: {
           limit: 10,
         },
       });
     res.send({ message: "success", user });
   } catch (error) {
-    res.status(400).send({ message: "failure", error });
+    res.status(400).send({ message: error.message });
   }
 });
 
@@ -78,7 +78,7 @@ router.post("/", async (req, res) => {
     await User.create({ name, email, password: hash });
     res.send({ message: "success" });
   } catch (error) {
-    res.status(400).send({ message: "failure", error });
+    res.status(400).send({ message: error.message });
   }
 });
 
@@ -94,7 +94,7 @@ router.patch("/", upload.single("image"), async (req, res) => {
     });
     res.send({ message: "success", user });
   } catch (error) {
-    res.status(400).send({ message: "failure", error });
+    res.status(400).send({ message: error.message });
   }
 });
 
@@ -111,7 +111,7 @@ router.patch("/follow", async (req, res) => {
     });
     res.send({ message: "success" });
   } catch (error) {
-    res.status(400).send({ message: "failure", error });
+    res.status(400).send({ message: error.message });
   }
 });
 

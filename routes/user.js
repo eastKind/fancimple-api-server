@@ -30,8 +30,9 @@ router.get("/", async (req, res) => {
         opptions: {
           limit: 10,
         },
-      });
-    res.send({ message: "success", user });
+      })
+      .select("-password -createdAt -updatedAt");
+    res.send({ user });
   } catch (error) {
     res.status(400).send({ message: error.message });
   }
@@ -64,7 +65,7 @@ router.get("/:id", async (req, res) => {
           limit: 10,
         },
       });
-    res.send({ message: "success", user });
+    res.send({ user });
   } catch (error) {
     res.status(400).send({ message: error.message });
   }
@@ -76,7 +77,7 @@ router.post("/", async (req, res) => {
     const { name, email, password } = req.body;
     const hash = await bcrypt.hash(password, 10);
     await User.create({ name, email, password: hash });
-    res.send({ message: "success" });
+    res.send();
   } catch (error) {
     res.status(400).send({ message: error.message });
   }
@@ -92,7 +93,7 @@ router.patch("/", upload.single("image"), async (req, res) => {
     const user = await User.findByIdAndUpdate(req.userId, doc, {
       new: true,
     });
-    res.send({ message: "success", user });
+    res.send({ user });
   } catch (error) {
     res.status(400).send({ message: error.message });
   }
@@ -109,7 +110,7 @@ router.patch("/follow", async (req, res) => {
     await User.findByIdAndUpdate(req.userId, {
       $push: { followings: targetId },
     });
-    res.send({ message: "success" });
+    res.send();
   } catch (error) {
     res.status(400).send({ message: error.message });
   }

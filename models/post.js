@@ -17,6 +17,7 @@ const postSchema = new mongoose.Schema(
     writer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      required: true,
     },
     likeCount: {
       type: Number,

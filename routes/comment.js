@@ -11,7 +11,7 @@ router.post("/", async (req, res) => {
       $push: { comments: comment.id },
       $inc: { commentCount: 1 },
     });
-    res.send({ message: "success", comment });
+    res.send({ comment });
   } catch (error) {
     res.status(400).send({ message: error.message });
   }
@@ -26,7 +26,7 @@ router.delete("/:id", async (req, res) => {
       $pull: { comments: id },
       $inc: { commentCount: -1 },
     });
-    res.send({ message: "success" });
+    res.send();
   } catch (error) {
     res.status(400).send({ message: error.message });
   }
@@ -42,7 +42,7 @@ router.patch("/:id", async (req, res) => {
       { contents },
       { new: true }
     );
-    res.send({ message: "success", comment });
+    res.send({ comment });
   } catch (error) {
     res.status(400).send({ message: error.message });
   }
@@ -60,7 +60,7 @@ router.patch("/:id/like", async (req, res) => {
       },
       { new: true }
     );
-    res.send({ message: "success", comment });
+    res.send({ comment });
   } catch (error) {
     res.status(400).send({ message: error.message });
   }

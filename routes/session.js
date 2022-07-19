@@ -18,7 +18,7 @@ router.post("/", async (req, res) => {
             domain: "localhost",
             path: "/",
           })
-          .send({ message: "success" });
+          .send();
       }
     }
   } catch (error) {
@@ -31,7 +31,7 @@ router.delete("/", async (req, res) => {
     if (!req.sessionId) throw new Error("Invalid Session");
     await Session.findByIdAndRemove(req.sessionId);
     res.clearCookie("sessionId");
-    res.send({ message: "success" });
+    res.send();
   } catch (error) {
     res.status(400).send({ message: error.message });
   }

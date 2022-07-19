@@ -4,6 +4,7 @@ const { User, Session } = require("../models");
 
 const router = express.Router();
 
+// Sign in
 router.post("/", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -12,20 +13,22 @@ router.post("/", async (req, res) => {
       const match = await bcrypt.compare(password, user.password);
       if (match) {
         const session = await Session.create({ user: user.id });
-        res
+        return res
           .cookie("sessionId", session.id, {
             expires: new Date(Date.now() + 86400000),
             domain: "localhost",
             path: "/",
           })
-          .send();
+          .send({ user });
       }
     }
+    res.status(400).send({ message: "잘못된 회원 정보입니다." });
   } catch (error) {
     res.status(400).send({ message: error.message });
   }
 });
 
+// Sign out
 router.delete("/", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");

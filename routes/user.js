@@ -38,7 +38,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// get other
+// get user
 router.get("/:id", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
@@ -64,7 +64,8 @@ router.get("/:id", async (req, res) => {
         opptions: {
           limit: 10,
         },
-      });
+      })
+      .select("-password -createdAt -updatedAt");
     res.send({ user });
   } catch (error) {
     res.status(400).send({ message: error.message });

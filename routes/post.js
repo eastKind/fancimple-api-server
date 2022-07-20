@@ -26,14 +26,10 @@ router.get("/:id", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
     const { id } = req.params;
-    const post = await Post.findById(id)
-      .populate({ path: "writer", select: "id name photoUrl" })
-      .populate({
-        path: "comments",
-        select: "-post",
-        populate: { path: "writer", select: "id name photoUrl" },
-        options: { limit: 10 },
-      });
+    const post = await Post.findById(id).populate({
+      path: "writer",
+      select: "id name photoUrl",
+    });
     res.send({ post });
   } catch (error) {
     res.status(400).send({ message: error.message });

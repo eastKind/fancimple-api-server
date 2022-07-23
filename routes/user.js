@@ -6,7 +6,7 @@ const upload = require("../middleware/upload.js");
 const router = express.Router();
 
 // get me
-router.get("/", async (req, res) => {
+router.get("/me", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
     const user = await User.findById(req.userId)

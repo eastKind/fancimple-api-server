@@ -52,7 +52,7 @@ router.delete("/:id", async (req, res) => {
       $pull: { comments: id },
       $inc: { commentCount: -1 },
     });
-    res.send();
+    res.send({ id });
   } catch (error) {
     res.status(400).send({ message: error.message });
   }
@@ -67,7 +67,7 @@ router.patch("/:id", async (req, res) => {
       id,
       { contents },
       { new: true }
-    );
+    ).populate({ path: "writer", select: "id name photoUrl" });
     res.send({ comment });
   } catch (error) {
     res.status(400).send({ message: error.message });

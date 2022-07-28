@@ -84,16 +84,33 @@ router.post("/", async (req, res) => {
   }
 });
 
+// modify photo
+router.patch("/photo", upload.single("photo"), async (req, res) => {
+  try {
+    if (!req.sessionId) throw new Error("Invalid Session");
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { photoUrl: req.file.location },
+      {
+        new: true,
+      }
+    );
+    res.send({ user });
+  } catch (error) {
+    res.status(400).send({ message: error.message });
+  }
+});
+
 // modify profile
-router.patch("/", upload.single("image"), async (req, res) => {
+router.patch("/", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
     const { name, password } = req.body;
-    const doc = { name, password };
-    if (req.file) doc.photoUrl = req.file.location;
-    const user = await User.findByIdAndUpdate(req.userId, doc, {
-      new: true,
-    });
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { name, password },
+      { new: true }
+    );
     res.send({ user });
   } catch (error) {
     res.status(400).send({ message: error.message });

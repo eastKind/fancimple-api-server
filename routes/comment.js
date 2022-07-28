@@ -23,16 +23,13 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
-    const { id, contents } = req.body;
+    const { postId, contents } = req.body;
     const comment = await Comment.create({
+      postId,
       contents,
       writer: req.userId,
-      post: id,
     });
-    await Post.findByIdAndUpdate(id, {
-      $push: { comments: comment.id },
-      $inc: { commentCount: 1 },
-    });
+    await Post.findByIdAndUpdate(postId, { $inc: { commentCount: 1 } });
     await Comment.populate(comment, {
       path: "writer",
       select: "id name photoUrl",
@@ -43,16 +40,14 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:commentId", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
-    const { id } = req.params;
-    await Comment.findByIdAndRemove(id);
-    await Post.findByIdAndUpdate(id, {
-      $pull: { comments: id },
-      $inc: { commentCount: -1 },
-    });
-    res.send({ id });
+    const { commentId } = req.params;
+    const { postId } = req.query;
+    await Comment.findByIdAndRemove(commentId);
+    await Post.findByIdAndUpdate(postId, { $inc: { commentCount: -1 } });
+    res.send({ commentId });
   } catch (error) {
     res.status(400).send({ message: error.message });
   }

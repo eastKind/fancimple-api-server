@@ -23,23 +23,23 @@ const userSchema = new mongoose.Schema(
     followings: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
       },
     ],
+    followingCount: {
+      type: Number,
+      default: 0,
+    },
     followers: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
       },
     ],
-    posts: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Post",
-      },
-    ],
+    followerCount: {
+      type: Number,
+      default: 0,
+    },
   },
-  { versionKey: false, timestamps: true }
+  { versionKey: false }
 );
 
 const User = mongoose.model("User", userSchema);

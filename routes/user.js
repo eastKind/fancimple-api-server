@@ -9,29 +9,9 @@ const router = express.Router();
 router.get("/me", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
-    const user = await User.findById(req.userId)
-      .populate({
-        path: "followings",
-        select: "id name photoUrl",
-        options: {
-          limit: 10,
-        },
-      })
-      .populate({
-        path: "followers",
-        select: "id name photoUrl",
-        options: {
-          limit: 10,
-        },
-      })
-      .populate({
-        path: "posts",
-        select: "id thumbnail likeCount commentCount",
-        opptions: {
-          limit: 10,
-        },
-      })
-      .select("-password -createdAt -updatedAt");
+    const user = await User.findById(req.userId).select(
+      "-password -followings -followers"
+    );
     res.send({ user });
   } catch (error) {
     res.status(400).send({ message: error.message });
@@ -43,29 +23,9 @@ router.get("/:id", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
     const { id } = req.params;
-    const user = await User.findById(id)
-      .populate({
-        path: "followings",
-        select: "id name photoUrl",
-        options: {
-          limit: 10,
-        },
-      })
-      .populate({
-        path: "followers",
-        select: "id name photoUrl",
-        options: {
-          limit: 10,
-        },
-      })
-      .populate({
-        path: "posts",
-        select: "id thumbnail likeCount commentCount",
-        opptions: {
-          limit: 10,
-        },
-      })
-      .select("-password -createdAt -updatedAt");
+    const user = await User.findById(id).select(
+      "-password -followings -followers"
+    );
     res.send({ user });
   } catch (error) {
     res.status(400).send({ message: error.message });

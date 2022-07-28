@@ -6,8 +6,8 @@ const router = express.Router();
 router.get("/", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
-    const { id, cursor, limit } = req.query;
-    const filter = { post: id };
+    const { postId, cursor, limit } = req.query;
+    const filter = { postId };
     if (cursor) filter._id = { $lt: cursor };
     const comments = await Comment.find(filter)
       .populate({ path: "writer", select: "id name photoUrl" })

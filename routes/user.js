@@ -9,9 +9,7 @@ const router = express.Router();
 router.get("/me", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
-    const user = await User.findById(req.userId).select(
-      "-password -followings -followers"
-    );
+    const user = await User.findById(req.userId).select("-password");
     res.send({ user });
   } catch (error) {
     res.status(400).send({ message: error.message });
@@ -23,9 +21,7 @@ router.get("/:id", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
     const { id } = req.params;
-    const user = await User.findById(id).select(
-      "-password -followings -followers"
-    );
+    const user = await User.findById(id).select("-password");
     res.send({ user });
   } catch (error) {
     res.status(400).send({ message: error.message });

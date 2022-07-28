@@ -47,7 +47,7 @@ router.delete("/:commentId", async (req, res) => {
     const { postId } = req.query;
     await Comment.findByIdAndRemove(commentId);
     await Post.findByIdAndUpdate(postId, { $inc: { commentCount: -1 } });
-    res.send({ commentId });
+    res.send({ id: commentId });
   } catch (error) {
     res.status(400).send({ message: error.message });
   }

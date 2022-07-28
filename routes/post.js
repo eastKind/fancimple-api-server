@@ -1,5 +1,5 @@
 const express = require("express");
-const { Post } = require("../models");
+const { Post, User } = require("../models");
 const getHasNext = require("../utils/getHasNext.js");
 const upload = require("../middleware/upload.js");
 const s3 = require("../aws.js");
@@ -104,12 +104,18 @@ router.patch("/:id/like", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
     const { id } = req.params;
-    const { isLike } = req.body;
+    const { isLiked } = req.body;
     const post = await Post.findByIdAndUpdate(
       id,
-      { $inc: { likeCount: isLike ? 1 : -1 } },
+      {
+        $inc: { likeCount: isLiked ? -1 : 1 },
+        [isLiked ? "$pull" : "$push"]: { likeUsers: req.userId },
+      },
       { new: true }
-    );
+    ).populate({ path: "writer", select: "id name photoUrl" });
+    await User.findByIdAndUpdate(req.userId, {
+      [isLiked ? "$pull" : "$push"]: { likedPosts: id },
+    });
     res.send({ post });
   } catch (error) {
     res.status(400).send({ message: error.message });

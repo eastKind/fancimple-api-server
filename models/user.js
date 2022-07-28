@@ -25,19 +25,16 @@ const userSchema = new mongoose.Schema(
         type: mongoose.Schema.Types.ObjectId,
       },
     ],
-    followingCount: {
-      type: Number,
-      default: 0,
-    },
     followers: [
       {
         type: mongoose.Schema.Types.ObjectId,
       },
     ],
-    followerCount: {
-      type: Number,
-      default: 0,
-    },
+    likedPosts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+      },
+    ],
   },
   { versionKey: false }
 );

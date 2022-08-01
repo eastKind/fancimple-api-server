@@ -10,31 +10,36 @@ const Bucket = process.env.BUCKET;
 router.get("/", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
-    const { cursor, limit } = req.query;
-    const posts = await Post.find(cursor ? { _id: { $lt: cursor } } : {})
+    const { writer, cursor, limit } = req.query;
+    const filter = {};
+    if (cursor) filter._id = { $lt: cursor };
+    if (writer) filter.writer = writer;
+    const posts = await Post.find(filter)
       .populate({ path: "writer", select: "id name photoUrl" })
       .sort({ _id: -1 })
       .limit(limit);
-    const hasNext = await getHasNext(Post, cursor, limit);
+    const hasNext = await getHasNext(Post, filter, limit);
     res.send({ posts, hasNext });
   } catch (error) {
     res.status(400).send({ message: error.message });
   }
 });
 
-router.get("/:id", async (req, res) => {
-  try {
-    if (!req.sessionId) throw new Error("Invalid Session");
-    const { id } = req.params;
-    const post = await Post.findById(id).populate({
-      path: "writer",
-      select: "id name photoUrl",
-    });
-    res.send({ post });
-  } catch (error) {
-    res.status(400).send({ message: error.message });
-  }
-});
+// router.get("/:id", async (req, res) => {
+//   try {
+//     if (!req.sessionId) throw new Error("Invalid Session");
+//     const { id } = req.params;
+//     const filter = { writer: id }
+
+//     const post = await Post.findById(id).populate({
+//       path: "writer",
+//       select: "id name photoUrl",
+//     });
+//     res.send({ post });
+//   } catch (error) {
+//     res.status(400).send({ message: error.message });
+//   }
+// });
 
 router.post("/", upload.array("image"), async (req, res) => {
   try {

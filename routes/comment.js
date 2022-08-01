@@ -13,7 +13,7 @@ router.get("/", async (req, res) => {
       .populate({ path: "writer", select: "id name photoUrl" })
       .sort({ _id: -1 })
       .limit(limit);
-    const hasNext = await getHasNext(Comment, cursor, limit);
+    const hasNext = await getHasNext(Comment, filter, limit);
     res.send({ comments, hasNext });
   } catch (error) {
     res.status(400).send({ message: error.message });

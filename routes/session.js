@@ -19,7 +19,7 @@ router.post("/", async (req, res) => {
             domain: "localhost",
             path: "/",
           })
-          .send({ user });
+          .send();
       }
     }
     res.status(400).send({ message: "잘못된 회원 정보입니다." });

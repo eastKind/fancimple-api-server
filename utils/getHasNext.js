@@ -1,7 +1,6 @@
-async function getHasNext(model, cursor, limit) {
-  const filter = cursor ? { _id: { $lt: cursor } } : {};
-  const hasNext = (await model.countDocuments(filter)) - limit > 0;
-  return hasNext;
+async function getHasNext(model, filter, limit) {
+  const count = await model.countDocuments(filter);
+  return count - limit > 0;
 }
 
 module.exports = getHasNext;

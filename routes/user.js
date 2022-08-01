@@ -1,7 +1,8 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const { User } = require("../models");
-const upload = require("../middleware/upload.js");
+const upload = require("../middleware/upload");
+const s3 = require("../aws");
 
 const router = express.Router();
 
@@ -44,6 +45,9 @@ router.post("/", async (req, res) => {
 router.patch("/photo", upload.single("photo"), async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
+    await s3
+      .deleteObject({ Bucket: "eastkind-sns", Key: req.body.key })
+      .promise();
     const user = await User.findByIdAndUpdate(
       req.userId,
       { photoUrl: req.file.location },

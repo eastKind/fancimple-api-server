@@ -1,4 +1,3 @@
-const path = require("path");
 const multer = require("multer");
 const multerS3 = require("multer-s3");
 const { v4: uuid } = require("uuid");
@@ -10,8 +9,8 @@ const storage = multerS3({
   s3,
   bucket: process.env.BUCKET,
   key: function (req, file, cb) {
-    const extension = path.extname(file.originalname);
-    cb(null, uuid() + extension);
+    const extension = file.mimetype.match(/(?<=image\/).*/);
+    cb(null, uuid() + `.${extension}`);
   },
 });
 

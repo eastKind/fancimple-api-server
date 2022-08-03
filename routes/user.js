@@ -81,14 +81,19 @@ router.patch("/", async (req, res) => {
 router.patch("/follow", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
-    const { targetId } = req.body;
-    await User.findByIdAndUpdate(targetId, {
-      $push: { followers: req.userId },
-    });
+    const { userId: targetId, isFollowed } = req.body;
+    const query = isFollowed ? "$pull" : "$push";
+    const user = await User.findByIdAndUpdate(
+      targetId,
+      {
+        [query]: { followers: req.userId },
+      },
+      { new: true }
+    );
     await User.findByIdAndUpdate(req.userId, {
-      $push: { followings: targetId },
+      [query]: { followings: targetId },
     });
-    res.send();
+    res.send({ followers: user.followers });
   } catch (error) {
     res.status(400).send({ message: error.message });
   }

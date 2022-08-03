@@ -35,6 +35,10 @@ const userSchema = new mongoose.Schema(
         type: mongoose.Schema.Types.ObjectId,
       },
     ],
+    postCount: {
+      type: Number,
+      default: 0,
+    },
   },
   { versionKey: false }
 );

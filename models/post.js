@@ -27,11 +27,6 @@ const postSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    likeUsers: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-      },
-    ],
   },
   { versionKey: false, timestamps: true }
 );

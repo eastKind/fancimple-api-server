@@ -56,6 +56,7 @@ router.post("/", upload.array("image"), async (req, res) => {
       writer: req.userId,
     });
     await Post.populate(post, { path: "writer", select: "id name photoUrl" });
+    await User.findByIdAndUpdate(req.userId, { $inc: { postCount: 1 } });
     res.send({ post });
   } catch (error) {
     res.status(400).send({ message: error.message });
@@ -72,6 +73,7 @@ router.delete("/:id", async (req, res) => {
         return s3.deleteObject({ Bucket, Key: image.key }).promise();
       })
     );
+    await User.findByIdAndUpdate(req.userId, { $inc: { postCount: -1 } });
     res.send({ id });
   } catch (error) {
     res.status(400).send({ message: error.message });
@@ -114,14 +116,13 @@ router.patch("/:id/like", async (req, res) => {
       id,
       {
         $inc: { likeCount: isLiked ? -1 : 1 },
-        [isLiked ? "$pull" : "$push"]: { likeUsers: req.userId },
       },
       { new: true }
     ).populate({ path: "writer", select: "id name photoUrl" });
     await User.findByIdAndUpdate(req.userId, {
       [isLiked ? "$pull" : "$push"]: { likedPosts: id },
     });
-    res.send({ post });
+    res.send({ likeCount: post.likeCount });
   } catch (error) {
     res.status(400).send({ message: error.message });
   }

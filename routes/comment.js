@@ -73,15 +73,15 @@ router.patch("/:id/like", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
     const { id } = req.params;
-    const { isLike } = req.body;
+    const { isLiked } = req.body;
     const comment = await Comment.findByIdAndUpdate(
       id,
       {
-        $inc: { likeCount: isLike ? 1 : -1 },
+        [isLiked ? "$pull" : "$push"]: { likeUsers: req.userId },
       },
       { new: true }
     );
-    res.send({ comment });
+    res.send({ likeUsers: comment.likeUsers });
   } catch (error) {
     res.status(400).send({ message: error.message });
   }

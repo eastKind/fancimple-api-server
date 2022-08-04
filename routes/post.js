@@ -25,21 +25,22 @@ router.get("/", async (req, res) => {
   }
 });
 
-// router.get("/:id", async (req, res) => {
-//   try {
-//     if (!req.sessionId) throw new Error("Invalid Session");
-//     const { id } = req.params;
-//     const filter = { writer: id }
-
-//     const post = await Post.findById(id).populate({
-//       path: "writer",
-//       select: "id name photoUrl",
-//     });
-//     res.send({ post });
-//   } catch (error) {
-//     res.status(400).send({ message: error.message });
-//   }
-// });
+router.get("/bookmark", async (req, res) => {
+  try {
+    if (!req.sessionId) throw new Error("Invalid Session");
+    const { cursor, limit } = req.query;
+    const user = await User.findById(req.userId).populate({
+      path: "bookmarks",
+      populate: { path: "writer", select: "id name photoUrl" },
+      match: cursor ? { $lt: { _id: cursor } } : {},
+      sort: { _id: -1 },
+      limit,
+    });
+    res.send({ posts: user.bookmarks });
+  } catch (error) {
+    res.status(400).send({ message: error.message });
+  }
+});
 
 router.post("/", upload.array("image"), async (req, res) => {
   try {
@@ -115,14 +116,11 @@ router.patch("/:id/like", async (req, res) => {
     const post = await Post.findByIdAndUpdate(
       id,
       {
-        $inc: { likeCount: isLiked ? -1 : 1 },
+        [isLiked ? "$pull" : "$push"]: { likeUsers: req.userId },
       },
       { new: true }
     ).populate({ path: "writer", select: "id name photoUrl" });
-    await User.findByIdAndUpdate(req.userId, {
-      [isLiked ? "$pull" : "$push"]: { likedPosts: id },
-    });
-    res.send({ likeCount: post.likeCount });
+    res.send({ likeUsers: post.likeUsers });
   } catch (error) {
     res.status(400).send({ message: error.message });
   }

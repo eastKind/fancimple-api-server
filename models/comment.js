@@ -14,10 +14,11 @@ const commentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    likeCount: {
-      type: Number,
-      default: 0,
-    },
+    likeUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+      },
+    ],
   },
   { versionKey: false, timestamps: true }
 );

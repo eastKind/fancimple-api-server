@@ -83,17 +83,40 @@ router.patch("/follow", async (req, res) => {
     if (!req.sessionId) throw new Error("Invalid Session");
     const { userId: targetId, isFollowed } = req.body;
     const query = isFollowed ? "$pull" : "$push";
-    const user = await User.findByIdAndUpdate(
+    const other = await User.findByIdAndUpdate(
       targetId,
       {
         [query]: { followers: req.userId },
       },
       { new: true }
     );
-    await User.findByIdAndUpdate(req.userId, {
-      [query]: { followings: targetId },
-    });
-    res.send({ followers: user.followers });
+    const me = await User.findByIdAndUpdate(
+      req.userId,
+      {
+        [query]: { followings: targetId },
+      },
+      { new: true }
+    );
+    res.send({ followers: other.followers, followings: me.followings });
+  } catch (error) {
+    res.status(400).send({ message: error.message });
+  }
+});
+
+// bookmark
+router.patch("/bookmark", async (req, res) => {
+  try {
+    if (!req.sessionId) throw new Error("Invalid Session");
+    const { postId, isMarked } = req.body;
+    const query = isMarked ? "$pull" : "$push";
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      {
+        [query]: { bookmarks: postId },
+      },
+      { new: true }
+    );
+    res.send({ bookmarks: user.bookmarks });
   } catch (error) {
     res.status(400).send({ message: error.message });
   }

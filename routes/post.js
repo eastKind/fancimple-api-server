@@ -10,10 +10,8 @@ const Bucket = process.env.BUCKET;
 router.get("/", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
-    const { writer, cursor, limit } = req.query;
-    const filter = {};
-    if (cursor) filter._id = { $lt: cursor };
-    if (writer) filter.writer = writer;
+    const { cursor, limit } = req.query;
+    const filter = cursor ? { _id: { $lt: cursor } } : {};
     const posts = await Post.find(filter)
       .populate({ path: "writer", select: "id name photoUrl" })
       .sort({ _id: -1 })
@@ -32,11 +30,35 @@ router.get("/bookmark", async (req, res) => {
     const user = await User.findById(req.userId).populate({
       path: "bookmarks",
       populate: { path: "writer", select: "id name photoUrl" },
-      match: cursor ? { $lt: { _id: cursor } } : {},
-      sort: { _id: -1 },
-      limit,
+      match: cursor ? { _id: { $lt: cursor } } : {},
+      options: {
+        sort: { _id: -1 },
+        limit,
+      },
     });
-    res.send({ posts: user.bookmarks });
+    const hasNext = user.bookmarks.length === Number(limit);
+    res.send({ posts: user.bookmarks, hasNext });
+  } catch (error) {
+    res.status(400).send({ message: error.message });
+  }
+});
+
+router.get("/:id", async (req, res) => {
+  try {
+    if (!req.sessionId) throw new Error("Invalid Session");
+    const { id } = req.params;
+    const { cursor, limit } = req.query;
+    const user = await User.findById(id).populate({
+      path: "posts",
+      populate: { path: "writer", select: "id name photoUrl" },
+      match: cursor ? { _id: { $lt: cursor } } : {},
+      options: {
+        sort: { _id: -1 },
+        limit,
+      },
+    });
+    const hasNext = user.posts.length === Number(limit);
+    res.send({ posts: user.posts, hasNext });
   } catch (error) {
     res.status(400).send({ message: error.message });
   }
@@ -57,7 +79,10 @@ router.post("/", upload.array("image"), async (req, res) => {
       writer: req.userId,
     });
     await Post.populate(post, { path: "writer", select: "id name photoUrl" });
-    await User.findByIdAndUpdate(req.userId, { $inc: { postCount: 1 } });
+    await User.findByIdAndUpdate(req.userId, {
+      $inc: { postCount: 1 },
+      $push: { posts: post._id },
+    });
     res.send({ post });
   } catch (error) {
     res.status(400).send({ message: error.message });
@@ -74,7 +99,10 @@ router.delete("/:id", async (req, res) => {
         return s3.deleteObject({ Bucket, Key: image.key }).promise();
       })
     );
-    await User.findByIdAndUpdate(req.userId, { $inc: { postCount: -1 } });
+    await User.findByIdAndUpdate(req.userId, {
+      $inc: { postCount: -1 },
+      $pull: { posts: id },
+    });
     res.send({ id });
   } catch (error) {
     res.status(400).send({ message: error.message });

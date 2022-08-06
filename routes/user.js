@@ -10,7 +10,7 @@ const router = express.Router();
 router.get("/me", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
-    const user = await User.findById(req.userId).select("-password");
+    const user = await User.findById(req.userId).select("-password -posts");
     res.send({ user });
   } catch (error) {
     res.status(400).send({ message: error.message });
@@ -22,7 +22,7 @@ router.get("/:id", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
     const { id } = req.params;
-    const user = await User.findById(id).select("-password");
+    const user = await User.findById(id).select("-password -posts -bookmarks");
     res.send({ user });
   } catch (error) {
     res.status(400).send({ message: error.message });
@@ -55,7 +55,7 @@ router.patch("/photo", upload.single("photo"), async (req, res) => {
         new: true,
       }
     );
-    res.send({ user });
+    res.send({ photoUrl: user.photoUrl });
   } catch (error) {
     res.status(400).send({ message: error.message });
   }

@@ -2,10 +2,6 @@ const mongoose = require("mongoose");
 
 const postSchema = new mongoose.Schema(
   {
-    title: {
-      type: String,
-      required: true,
-    },
     contents: String,
     thumbnail: String,
     images: [
@@ -22,6 +18,12 @@ const postSchema = new mongoose.Schema(
     likeUsers: [
       {
         type: mongoose.Schema.Types.ObjectId,
+      },
+    ],
+    comments: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Comment",
       },
     ],
     commentCount: {

@@ -1,20 +1,22 @@
 const express = require("express");
 const { Post, Comment } = require("../models");
-const getHasNext = require("../utils/getHasNext");
 const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
     const { postId, cursor, limit } = req.query;
-    const filter = { postId };
-    if (cursor) filter._id = { $lt: cursor };
-    const comments = await Comment.find(filter)
-      .populate({ path: "writer", select: "id name photoUrl" })
-      .sort({ _id: -1 })
-      .limit(limit);
-    const hasNext = await getHasNext(Comment, filter, limit);
-    res.send({ comments, hasNext });
+    const post = await Post.findById(postId).populate({
+      path: "comments",
+      populate: { path: "writer", select: "id name photoUrl" },
+      match: cursor ? { _id: { $lt: cursor } } : {},
+      options: {
+        sort: { _id: -1 },
+        limit,
+      },
+    });
+    const hasNext = post.comments.length === Number(limit);
+    res.send({ comments: post.comments, hasNext });
   } catch (error) {
     res.status(400).send({ message: error.message });
   }
@@ -29,7 +31,10 @@ router.post("/", async (req, res) => {
       contents,
       writer: req.userId,
     });
-    await Post.findByIdAndUpdate(postId, { $inc: { commentCount: 1 } });
+    await Post.findByIdAndUpdate(postId, {
+      $inc: { commentCount: 1 },
+      $push: { comments: comment._id },
+    });
     await Comment.populate(comment, {
       path: "writer",
       select: "id name photoUrl",
@@ -46,24 +51,11 @@ router.delete("/:commentId", async (req, res) => {
     const { commentId } = req.params;
     const { postId } = req.query;
     await Comment.findByIdAndRemove(commentId);
-    await Post.findByIdAndUpdate(postId, { $inc: { commentCount: -1 } });
+    await Post.findByIdAndUpdate(postId, {
+      $inc: { commentCount: -1 },
+      $pull: { comments: commentId },
+    });
     res.send({ id: commentId });
-  } catch (error) {
-    res.status(400).send({ message: error.message });
-  }
-});
-
-router.patch("/:id", async (req, res) => {
-  try {
-    if (!req.sessionId) throw new Error("Invalid Session");
-    const { id } = req.params;
-    const { contents } = req.body;
-    const comment = await Comment.findByIdAndUpdate(
-      id,
-      { contents },
-      { new: true }
-    ).populate({ path: "writer", select: "id name photoUrl" });
-    res.send({ comment });
   } catch (error) {
     res.status(400).send({ message: error.message });
   }

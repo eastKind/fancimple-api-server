@@ -67,15 +67,15 @@ router.get("/:id", async (req, res) => {
 router.post("/", upload.array("image"), async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
-    const { title, contents = "" } = req.body;
+    const { ratio, contents = "" } = req.body;
     const images = req.files.map((file) => ({
       url: file.location,
       key: file.key,
     }));
     const post = await Post.create({
-      title,
       contents,
       images,
+      ratio,
       writer: req.userId,
     });
     await Post.populate(post, { path: "writer", select: "id name photoUrl" });
@@ -149,6 +149,15 @@ router.patch("/:id/like", async (req, res) => {
       { new: true }
     ).populate({ path: "writer", select: "id name photoUrl" });
     res.send({ likeUsers: post.likeUsers });
+  } catch (error) {
+    res.status(400).send({ message: error.message });
+  }
+});
+
+router.post("/test", upload.single("photo"), async (req, res) => {
+  try {
+    if (!req.sessionId) throw new Error("Invalid Session");
+    res.send();
   } catch (error) {
     res.status(400).send({ message: error.message });
   }

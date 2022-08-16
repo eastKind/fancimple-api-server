@@ -10,6 +10,7 @@ const postSchema = new mongoose.Schema(
         key: String,
       },
     ],
+    ratio: String,
     writer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

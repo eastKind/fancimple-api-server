@@ -29,6 +29,50 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// get followers
+router.get("/followers/:id", async (req, res) => {
+  try {
+    if (!req.sessionId) throw new Error("Invalid Session");
+    const { id } = req.params;
+    const { cursor, limit } = req.query;
+    const user = await User.findById(id).populate({
+      path: "followers",
+      select: "id name photoUrl",
+      match: cursor ? { _id: { $lt: cursor } } : {},
+      options: {
+        sort: { _id: -1 },
+        limit,
+      },
+    });
+    const hasNext = user.followers.length === Number(limit);
+    res.send({ users: user.followers, hasNext });
+  } catch (error) {
+    res.status(400).send({ message: error.message });
+  }
+});
+
+// get followings
+router.get("/followings/:id", async (req, res) => {
+  try {
+    if (!req.sessionId) throw new Error("Invalid Session");
+    const { id } = req.params;
+    const { cursor, limit } = req.query;
+    const user = await User.findById(id).populate({
+      path: "followings",
+      select: "id name photoUrl",
+      match: cursor ? { _id: { $lt: cursor } } : {},
+      options: {
+        sort: { _id: -1 },
+        limit,
+      },
+    });
+    const hasNext = user.followings.length === Number(limit);
+    res.send({ users: user.followings, hasNext });
+  } catch (error) {
+    res.status(400).send({ message: error.message });
+  }
+});
+
 // sign up
 router.post("/", async (req, res) => {
   try {
@@ -117,6 +161,20 @@ router.patch("/bookmark", async (req, res) => {
       { new: true }
     );
     res.send({ bookmarks: user.bookmarks });
+  } catch (error) {
+    res.status(400).send({ message: error.message });
+  }
+});
+
+router.post("/validate", async (req, res) => {
+  try {
+    const { name, email } = req.body;
+    const filter = {};
+    if (name) filter.name = name;
+    if (email) filter.email = email;
+    const user = await User.findOne(filter);
+    const caution = user ? `중복된 ${name ? "이름" : "이메일"}입니다.` : "";
+    res.send({ caution });
   } catch (error) {
     res.status(400).send({ message: error.message });
   }

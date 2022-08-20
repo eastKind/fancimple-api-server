@@ -67,13 +67,13 @@ router.get("/:id", async (req, res) => {
 router.post("/", upload.array("image"), async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
-    const { ratio, contents = "" } = req.body;
+    const { ratio, texts } = req.body;
     const images = req.files.map((file) => ({
       url: file.location,
       key: file.key,
     }));
     const post = await Post.create({
-      contents,
+      texts,
       images,
       ratio,
       writer: req.userId,
@@ -113,13 +113,11 @@ router.patch("/:id", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
     const { id } = req.params;
-    const { title, contents, deletedKeys } = req.body;
-
+    const { texts, deletedKeys } = req.body;
     let post = await Post.findById(id);
-    post.title = title;
-    post.contents = contents;
+    post.texts = texts;
 
-    if (deletedKeys.length > 1) {
+    if (deletedKeys.length > 0) {
       await Promise.all(
         deletedKeys.map((deletedKey) =>
           s3.deleteObject({ Bucket, Key: deletedKey }).promise()
@@ -129,7 +127,9 @@ router.patch("/:id", async (req, res) => {
         post.images = post.images.filter((image) => image.key !== deletedKey);
       });
     }
-    post = await post.save();
+    post = await (
+      await post.save()
+    ).populate({ path: "writer", select: "id name photoUrl" });
     res.send({ post });
   } catch (error) {
     res.status(400).send({ message: error.message });

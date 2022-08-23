@@ -33,7 +33,7 @@ router.delete("/", async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
     await Session.findByIdAndRemove(req.sessionId);
-    res.clearCookie("sessionId");
+    res.clearCookie("sessionId", { domain: process.env.DOMAIN, path: "/" });
     res.send();
   } catch (error) {
     res.status(400).send({ message: error.message });

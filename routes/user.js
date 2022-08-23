@@ -89,9 +89,11 @@ router.post("/", async (req, res) => {
 router.patch("/photo", upload.single("photo"), async (req, res) => {
   try {
     if (!req.sessionId) throw new Error("Invalid Session");
-    await s3
-      .deleteObject({ Bucket: "eastkind-sns", Key: req.body.key })
-      .promise();
+    if (req.body.key !== "default_photo.png") {
+      await s3
+        .deleteObject({ Bucket: process.env.BUCKET, Key: req.body.key })
+        .promise();
+    }
     const user = await User.findByIdAndUpdate(
       req.userId,
       { photoUrl: req.file.location },

@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema(
     photoUrl: {
       type: String,
       default:
-        "https://fancimple-images.s3.ap-northeast-2.amazonaws.com/person.png",
+        "https://fancimple-images.s3.ap-northeast-2.amazonaws.com/default_photo.png",
     },
     followings: [
       {

@@ -29,10 +29,10 @@ mongoose
     app.use(authenticate);
 
     // routes
-    app.use("/api/user", userRouter);
-    app.use("/api/session", sessionRouter);
-    app.use("/api/post", postRouter);
-    app.use("/api/comment", commentRouter);
+    app.use("/user", userRouter);
+    app.use("/session", sessionRouter);
+    app.use("/post", postRouter);
+    app.use("/comment", commentRouter);
 
     app.listen(PORT, () => {
       console.log(`Server is listening on port ${PORT}`);

@@ -20,7 +20,9 @@ mongoose
     console.log("MongoDB connection successful!");
 
     // middlewares
-    app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+    app.use(
+      cors({ origin: "http://fancimple.eastkindness.com", credentials: true })
+    );
     app.use("/public", express.static("public"));
     app.use(express.json());
     app.use(cookieParser());

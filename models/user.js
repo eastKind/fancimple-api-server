@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const BASIC_URL = process.env.BASIC_URL;
 
 const userSchema = new mongoose.Schema(
   {
@@ -18,7 +17,7 @@ const userSchema = new mongoose.Schema(
     },
     photoUrl: {
       type: String,
-      default: `${BASIC_URL}/public/person.png`,
+      default: "http://api.eastkindness.com/public/person.png",
     },
     followings: [
       {

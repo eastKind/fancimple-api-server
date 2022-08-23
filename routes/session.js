@@ -16,7 +16,7 @@ router.post("/", async (req, res) => {
         return res
           .cookie("sessionId", session.id, {
             expires: new Date(Date.now() + 86400000),
-            domain: ".eastkindness.com",
+            domain: process.env.DOMAIN,
             path: "/",
           })
           .send();

@@ -18,7 +18,7 @@ router.get("/", async (req, res) => {
     const hasNext = post.comments.length === Number(limit);
     res.send({ comments: post.comments, hasNext });
   } catch (error) {
-    res.status(400).send({ message: error.message });
+    res.status(400).send(error.message);
   }
 });
 
@@ -41,7 +41,7 @@ router.post("/", async (req, res) => {
     });
     res.send({ comment });
   } catch (error) {
-    res.status(400).send({ message: error.message });
+    res.status(400).send(error.message);
   }
 });
 
@@ -57,7 +57,7 @@ router.delete("/:commentId", async (req, res) => {
     });
     res.send({ id: commentId });
   } catch (error) {
-    res.status(400).send({ message: error.message });
+    res.status(400).send(error.message);
   }
 });
 
@@ -75,7 +75,7 @@ router.patch("/:id/like", async (req, res) => {
     );
     res.send({ likeUsers: comment.likeUsers });
   } catch (error) {
-    res.status(400).send({ message: error.message });
+    res.status(400).send(error.message);
   }
 });
 

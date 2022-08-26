@@ -22,9 +22,9 @@ router.post("/", async (req, res) => {
           .send();
       }
     }
-    res.status(400).send({ message: "잘못된 회원 정보입니다." });
+    res.status(404).send("잘못된 회원 정보입니다");
   } catch (error) {
-    res.status(400).send({ message: error.message });
+    res.status(400).send(error.message);
   }
 });
 
@@ -36,7 +36,7 @@ router.delete("/", async (req, res) => {
     res.clearCookie("sessionId", { domain: process.env.DOMAIN, path: "/" });
     res.send();
   } catch (error) {
-    res.status(400).send({ message: error.message });
+    res.status(400).send(error.message);
   }
 });
 

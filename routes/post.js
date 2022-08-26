@@ -9,26 +9,28 @@ const Bucket = process.env.BUCKET;
 
 router.get("/", async (req, res) => {
   try {
-    if (!req.sessionId) throw new Error("Invalid Session");
+    if (!req.sessionId) throw new Error("세션이 만료됐습니다.");
     const { cursor, limit } = req.query;
     const filter = cursor ? { _id: { $lt: cursor } } : {};
     const posts = await Post.find(filter)
       .populate({ path: "writer", select: "id name photoUrl" })
+      .select("-comments")
       .sort({ _id: -1 })
       .limit(limit);
     const hasNext = await getHasNext(Post, filter, limit);
     res.send({ posts, hasNext });
   } catch (error) {
-    res.status(400).send({ message: error.message });
+    res.status(400).send(error.message);
   }
 });
 
 router.get("/bookmark", async (req, res) => {
   try {
-    if (!req.sessionId) throw new Error("Invalid Session");
+    if (!req.sessionId) throw new Error("세션이 만료됐습니다.");
     const { cursor, limit } = req.query;
     const user = await User.findById(req.userId).populate({
       path: "bookmarks",
+      select: "-comments",
       populate: { path: "writer", select: "id name photoUrl" },
       match: cursor ? { _id: { $lt: cursor } } : {},
       options: {
@@ -39,17 +41,18 @@ router.get("/bookmark", async (req, res) => {
     const hasNext = user.bookmarks.length === Number(limit);
     res.send({ posts: user.bookmarks, hasNext });
   } catch (error) {
-    res.status(400).send({ message: error.message });
+    res.status(400).send(error.message);
   }
 });
 
 router.get("/:id", async (req, res) => {
   try {
-    if (!req.sessionId) throw new Error("Invalid Session");
+    if (!req.sessionId) throw new Error("세션이 만료됐습니다.");
     const { id } = req.params;
     const { cursor, limit } = req.query;
     const user = await User.findById(id).populate({
       path: "posts",
+      select: "-comments",
       populate: { path: "writer", select: "id name photoUrl" },
       match: cursor ? { _id: { $lt: cursor } } : {},
       options: {
@@ -60,13 +63,13 @@ router.get("/:id", async (req, res) => {
     const hasNext = user.posts.length === Number(limit);
     res.send({ posts: user.posts, hasNext });
   } catch (error) {
-    res.status(400).send({ message: error.message });
+    res.status(400).send(error.message);
   }
 });
 
 router.post("/", upload.array("image"), async (req, res) => {
   try {
-    if (!req.sessionId) throw new Error("Invalid Session");
+    if (!req.sessionId) throw new Error("세션이 만료됐습니다.");
     const { ratio, texts } = req.body;
     const images = req.files.map((file) => ({
       url: file.location,
@@ -85,13 +88,13 @@ router.post("/", upload.array("image"), async (req, res) => {
     });
     res.send({ post });
   } catch (error) {
-    res.status(400).send({ message: error.message });
+    res.status(400).send(error.message);
   }
 });
 
 router.delete("/:id", async (req, res) => {
   try {
-    if (!req.sessionId) throw new Error("Invalid Session");
+    if (!req.sessionId) throw new Error("세션이 만료됐습니다.");
     const { id } = req.params;
     const post = await Post.findByIdAndRemove(id);
     await Promise.all(
@@ -105,13 +108,13 @@ router.delete("/:id", async (req, res) => {
     });
     res.send({ id });
   } catch (error) {
-    res.status(400).send({ message: error.message });
+    res.status(400).send(error.message);
   }
 });
 
 router.patch("/:id", async (req, res) => {
   try {
-    if (!req.sessionId) throw new Error("Invalid Session");
+    if (!req.sessionId) throw new Error("세션이 만료됐습니다.");
     const { id } = req.params;
     const { texts, deletedKeys } = req.body;
     let post = await Post.findById(id);
@@ -132,13 +135,13 @@ router.patch("/:id", async (req, res) => {
     ).populate({ path: "writer", select: "id name photoUrl" });
     res.send({ post });
   } catch (error) {
-    res.status(400).send({ message: error.message });
+    res.status(400).send(error.message);
   }
 });
 
 router.patch("/:id/like", async (req, res) => {
   try {
-    if (!req.sessionId) throw new Error("Invalid Session");
+    if (!req.sessionId) throw new Error("세션이 만료됐습니다.");
     const { id } = req.params;
     const { isLiked } = req.body;
     const post = await Post.findByIdAndUpdate(
@@ -147,19 +150,10 @@ router.patch("/:id/like", async (req, res) => {
         [isLiked ? "$pull" : "$push"]: { likeUsers: req.userId },
       },
       { new: true }
-    ).populate({ path: "writer", select: "id name photoUrl" });
+    );
     res.send({ likeUsers: post.likeUsers });
   } catch (error) {
-    res.status(400).send({ message: error.message });
-  }
-});
-
-router.post("/test", upload.single("photo"), async (req, res) => {
-  try {
-    if (!req.sessionId) throw new Error("Invalid Session");
-    res.send();
-  } catch (error) {
-    res.status(400).send({ message: error.message });
+    res.status(400).send(error.message);
   }
 });
 

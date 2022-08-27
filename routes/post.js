@@ -9,7 +9,7 @@ const Bucket = process.env.BUCKET;
 
 router.get("/", async (req, res) => {
   try {
-    if (!req.sessionId) throw new Error("세션이 만료됐습니다.");
+    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { cursor, limit } = req.query;
     const filter = cursor ? { _id: { $lt: cursor } } : {};
     const posts = await Post.find(filter)
@@ -20,13 +20,13 @@ router.get("/", async (req, res) => {
     const hasNext = await getHasNext(Post, filter, limit);
     res.send({ posts, hasNext });
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(500).send(error.message);
   }
 });
 
 router.get("/bookmark", async (req, res) => {
   try {
-    if (!req.sessionId) throw new Error("세션이 만료됐습니다.");
+    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { cursor, limit } = req.query;
     const user = await User.findById(req.userId).populate({
       path: "bookmarks",
@@ -41,13 +41,13 @@ router.get("/bookmark", async (req, res) => {
     const hasNext = user.bookmarks.length === Number(limit);
     res.send({ posts: user.bookmarks, hasNext });
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(500).send(error.message);
   }
 });
 
 router.get("/:id", async (req, res) => {
   try {
-    if (!req.sessionId) throw new Error("세션이 만료됐습니다.");
+    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { id } = req.params;
     const { cursor, limit } = req.query;
     const user = await User.findById(id).populate({
@@ -63,13 +63,13 @@ router.get("/:id", async (req, res) => {
     const hasNext = user.posts.length === Number(limit);
     res.send({ posts: user.posts, hasNext });
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(500).send(error.message);
   }
 });
 
 router.post("/", upload.array("image"), async (req, res) => {
   try {
-    if (!req.sessionId) throw new Error("세션이 만료됐습니다.");
+    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { ratio, texts } = req.body;
     const images = req.files.map((file) => ({
       url: file.location,
@@ -88,13 +88,13 @@ router.post("/", upload.array("image"), async (req, res) => {
     });
     res.send({ post });
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(500).send(error.message);
   }
 });
 
 router.delete("/:id", async (req, res) => {
   try {
-    if (!req.sessionId) throw new Error("세션이 만료됐습니다.");
+    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { id } = req.params;
     const post = await Post.findByIdAndRemove(id);
     await Promise.all(
@@ -108,13 +108,13 @@ router.delete("/:id", async (req, res) => {
     });
     res.send({ id });
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(500).send(error.message);
   }
 });
 
 router.patch("/:id", async (req, res) => {
   try {
-    if (!req.sessionId) throw new Error("세션이 만료됐습니다.");
+    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { id } = req.params;
     const { texts, deletedKeys } = req.body;
     let post = await Post.findById(id);
@@ -135,13 +135,13 @@ router.patch("/:id", async (req, res) => {
     ).populate({ path: "writer", select: "id name photoUrl" });
     res.send({ post });
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(500).send(error.message);
   }
 });
 
 router.patch("/:id/like", async (req, res) => {
   try {
-    if (!req.sessionId) throw new Error("세션이 만료됐습니다.");
+    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { id } = req.params;
     const { isLiked } = req.body;
     const post = await Post.findByIdAndUpdate(
@@ -153,7 +153,7 @@ router.patch("/:id/like", async (req, res) => {
     );
     res.send({ likeUsers: post.likeUsers });
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(500).send(error.message);
   }
 });
 

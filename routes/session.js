@@ -22,21 +22,21 @@ router.post("/", async (req, res) => {
           .send();
       }
     }
-    res.status(404).send("잘못된 회원 정보입니다");
+    res.status(400).send("잘못된 회원 정보입니다");
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(500).send(error.message);
   }
 });
 
 // Sign out
 router.delete("/", async (req, res) => {
   try {
-    if (!req.sessionId) throw new Error("Invalid Session");
+    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     await Session.findByIdAndRemove(req.sessionId);
     res.clearCookie("sessionId", { domain: process.env.DOMAIN, path: "/" });
     res.send();
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(500).send(error.message);
   }
 });
 

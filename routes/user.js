@@ -164,7 +164,7 @@ router.patch("/password", async (req, res) => {
       user = await user.save();
       res.send();
     } else {
-      res.status(400).send("비밀번호가 일치하지 않습니다.");
+      res.status(400).send("현재 비밀번호가 일치하지 않습니다.");
     }
   } catch (error) {
     res.status(500).send(error.message);
@@ -180,10 +180,14 @@ router.patch("/follow", async (req, res) => {
     await User.findByIdAndUpdate(targetId, {
       [query]: { followers: req.userId },
     });
-    await User.findByIdAndUpdate(req.userId, {
-      [query]: { followings: targetId },
-    });
-    res.send();
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      {
+        [query]: { followings: targetId },
+      },
+      { new: true }
+    );
+    res.send({ followings: user.followings });
   } catch (error) {
     res.status(500).send(error.message);
   }
@@ -195,10 +199,14 @@ router.patch("/bookmark", async (req, res) => {
     if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { postId, isMarked } = req.body;
     const query = isMarked ? "$pull" : "$push";
-    await User.findByIdAndUpdate(req.userId, {
-      [query]: { bookmarks: postId },
-    });
-    res.send();
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      {
+        [query]: { bookmarks: postId },
+      },
+      { new: true }
+    );
+    res.send({ bookmarks: user.bookmarks });
   } catch (error) {
     res.status(500).send(error.message);
   }

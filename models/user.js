@@ -52,6 +52,12 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    searchHistories: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { versionKey: false }
 );

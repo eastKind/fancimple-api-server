@@ -8,7 +8,7 @@ router.get("/", async (req, res) => {
     const { postId, cursor, limit } = req.query;
     const post = await Post.findById(postId).populate({
       path: "comments",
-      populate: { path: "writer", select: "id name photoUrl" },
+      populate: { path: "writer", select: "id name photoUrl desc" },
       match: cursor ? { _id: { $lt: cursor } } : {},
       options: {
         sort: { _id: -1 },
@@ -37,7 +37,7 @@ router.post("/", async (req, res) => {
     });
     await Comment.populate(comment, {
       path: "writer",
-      select: "id name photoUrl",
+      select: "id name photoUrl desc",
     });
     res.send({ comment });
   } catch (error) {

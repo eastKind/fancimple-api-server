@@ -13,7 +13,7 @@ router.get("/", async (req, res) => {
     const { cursor, limit } = req.query;
     const filter = cursor ? { _id: { $lt: cursor } } : {};
     const posts = await Post.find(filter)
-      .populate({ path: "writer", select: "id name photoUrl" })
+      .populate({ path: "writer", select: "id name photoUrl desc" })
       .select("-comments")
       .sort({ _id: -1 })
       .limit(limit);
@@ -31,7 +31,7 @@ router.get("/bookmark", async (req, res) => {
     const user = await User.findById(req.userId).populate({
       path: "bookmarks",
       select: "-comments",
-      populate: { path: "writer", select: "id name photoUrl" },
+      populate: { path: "writer", select: "id name photoUrl desc" },
       match: cursor ? { _id: { $lt: cursor } } : {},
       options: {
         sort: { _id: -1 },
@@ -53,7 +53,7 @@ router.get("/:id", async (req, res) => {
     const user = await User.findById(id).populate({
       path: "posts",
       select: "-comments",
-      populate: { path: "writer", select: "id name photoUrl" },
+      populate: { path: "writer", select: "id name photoUrl desc" },
       match: cursor ? { _id: { $lt: cursor } } : {},
       options: {
         sort: { _id: -1 },
@@ -81,7 +81,10 @@ router.post("/", upload.array("image"), async (req, res) => {
       ratio,
       writer: req.userId,
     });
-    await Post.populate(post, { path: "writer", select: "id name photoUrl" });
+    await Post.populate(post, {
+      path: "writer",
+      select: "id name photoUrl desc",
+    });
     await User.findByIdAndUpdate(req.userId, {
       $inc: { postCount: 1 },
       $push: { posts: post._id },
@@ -132,7 +135,7 @@ router.patch("/:id", async (req, res) => {
     }
     post = await (
       await post.save()
-    ).populate({ path: "writer", select: "id name photoUrl" });
+    ).populate({ path: "writer", select: "id name photoUrl desc" });
     res.send({ post });
   } catch (error) {
     res.status(500).send(error.message);

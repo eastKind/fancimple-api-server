@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const { User } = require("../models");
 const upload = require("../middleware/upload");
 const s3 = require("../aws");
+const getHasNext = require("../utils/getHasNext");
 
 const router = express.Router();
 
@@ -27,11 +28,29 @@ router.get("/:id", async (req, res) => {
     const { id } = req.params;
     if (isValidObjectId(id)) {
       const user = await User.findById(id).select(
-        "-password -posts -email -bookmarks"
+        "-password -posts -email -bookmarks -searchHistories"
       );
       return res.send({ user });
     }
     res.status(404).send("존재하지 않는 사용자입니다.");
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+// get users
+router.get("/", async (req, res) => {
+  try {
+    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
+    const { keyword, cursor, limit } = req.query;
+    const filter = { name: { $regex: keyword } };
+    if (cursor) filter._id = { $lt: cursor };
+    const users = await User.find(filter)
+      .select("id name photoUrl desc")
+      .sort({ _id: -1 })
+      .limit(limit);
+    const hasNext = await getHasNext(User, filter, limit);
+    res.send({ users, hasNext });
   } catch (error) {
     res.status(500).send(error.message);
   }
@@ -45,7 +64,7 @@ router.get("/followers/:id", async (req, res) => {
     const { cursor, limit } = req.query;
     const user = await User.findById(id).populate({
       path: "followers",
-      select: "id name photoUrl",
+      select: "id name photoUrl desc",
       match: cursor ? { _id: { $lt: cursor } } : {},
       options: {
         sort: { _id: -1 },
@@ -67,7 +86,7 @@ router.get("/followings/:id", async (req, res) => {
     const { cursor, limit } = req.query;
     const user = await User.findById(id).populate({
       path: "followings",
-      select: "id name photoUrl",
+      select: "id name photoUrl desc",
       match: cursor ? { _id: { $lt: cursor } } : {},
       options: {
         sort: { _id: -1 },
@@ -212,7 +231,7 @@ router.patch("/bookmark", async (req, res) => {
   }
 });
 
-//validate
+// validate
 router.post("/validate", async (req, res) => {
   try {
     const { name, email } = req.body;
@@ -222,6 +241,47 @@ router.post("/validate", async (req, res) => {
     const user = await User.findOne(filter);
     const caution = user ? `중복된 ${name ? "이름" : "이메일"}입니다.` : "";
     res.send({ caution });
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+// add search history
+router.post("/history/search", async (req, res) => {
+  try {
+    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
+    const { userId } = req.body;
+    await User.findByIdAndUpdate(req.userId, {
+      $push: { searchHistories: userId },
+    });
+    res.send();
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+// get search history
+router.get("/history/search", async (req, res) => {
+  try {
+    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
+    const user = await User.findById(req.userId).populate({
+      path: "searchHistories",
+      select: "id name photoUrl desc",
+    });
+    res.send({ histories: user.searchHistories });
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+// clear search history
+router.delete("/history/search", async (req, res) => {
+  try {
+    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
+    const user = await User.findById(req.userId);
+    user.searchHistories = [];
+    await user.save();
+    res.send();
   } catch (error) {
     res.status(500).send(error.message);
   }

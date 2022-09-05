@@ -3,7 +3,6 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const { authenticate } = require("./middleware/authenticate.js");
 const {
   userRouter,
   sessionRouter,
@@ -24,7 +23,6 @@ mongoose
     app.use("/public", express.static("public"));
     app.use(express.json());
     app.use(cookieParser());
-    app.use(authenticate);
 
     // routes
     app.use("/user", userRouter);

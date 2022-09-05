@@ -1,6 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const { User, Session } = require("../models");
+const auth = require("../middleware/authenticate");
 
 const router = express.Router();
 
@@ -29,9 +30,8 @@ router.post("/", async (req, res) => {
 });
 
 // Sign out
-router.delete("/", async (req, res) => {
+router.delete("/", auth, async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     await Session.findByIdAndRemove(req.sessionId);
     res.clearCookie("sessionId", { domain: process.env.DOMAIN, path: "/" });
     res.send();

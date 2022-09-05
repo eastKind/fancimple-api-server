@@ -3,15 +3,15 @@ const { isValidObjectId } = require("mongoose");
 const bcrypt = require("bcrypt");
 const { User } = require("../models");
 const upload = require("../middleware/upload");
+const auth = require("../middleware/authenticate");
 const s3 = require("../aws");
 const getHasNext = require("../utils/getHasNext");
 
 const router = express.Router();
 
 // get me
-router.get("/me", async (req, res) => {
+router.get("/me", auth, async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const user = await User.findById(req.userId).select(
       "-password -posts -email"
     );
@@ -24,7 +24,6 @@ router.get("/me", async (req, res) => {
 // get user
 router.get("/:id", async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { id } = req.params;
     if (isValidObjectId(id)) {
       const user = await User.findById(id).select(
@@ -41,7 +40,6 @@ router.get("/:id", async (req, res) => {
 // get users
 router.get("/", async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { keyword, cursor, limit } = req.query;
     const filter = { name: { $regex: keyword } };
     if (cursor) filter._id = { $lt: cursor };
@@ -59,7 +57,6 @@ router.get("/", async (req, res) => {
 // get followers
 router.get("/followers/:id", async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { id } = req.params;
     const { cursor, limit } = req.query;
     const user = await User.findById(id).populate({
@@ -81,7 +78,6 @@ router.get("/followers/:id", async (req, res) => {
 // get followings
 router.get("/followings/:id", async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { id } = req.params;
     const { cursor, limit } = req.query;
     const user = await User.findById(id).populate({
@@ -113,9 +109,8 @@ router.post("/", async (req, res) => {
 });
 
 // change photo
-router.patch("/photo", upload.single("photo"), async (req, res) => {
+router.patch("/photo", auth, upload.single("photo"), async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     if (req.body.key !== "default_photo.png") {
       await s3
         .deleteObject({ Bucket: process.env.BUCKET, Key: req.body.key })
@@ -135,9 +130,8 @@ router.patch("/photo", upload.single("photo"), async (req, res) => {
 });
 
 // change name
-router.patch("/name", async (req, res) => {
+router.patch("/name", auth, async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { name } = req.body;
     const isExist = await User.findOne({ name });
     if (!isExist) {
@@ -156,9 +150,8 @@ router.patch("/name", async (req, res) => {
 });
 
 // change desc
-router.patch("/desc", async (req, res) => {
+router.patch("/desc", auth, async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { desc } = req.body;
     const user = await User.findByIdAndUpdate(
       req.userId,
@@ -172,9 +165,8 @@ router.patch("/desc", async (req, res) => {
 });
 
 // change password
-router.patch("/password", async (req, res) => {
+router.patch("/password", auth, async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { current, next } = req.body;
     let user = await User.findById(req.userId);
     const match = await bcrypt.compare(current, user.password);
@@ -191,31 +183,33 @@ router.patch("/password", async (req, res) => {
 });
 
 // follow
-router.patch("/follow", async (req, res) => {
+router.patch("/follow", auth, async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { userId: targetId, isFollowed } = req.body;
     const query = isFollowed ? "$pull" : "$push";
-    await User.findByIdAndUpdate(targetId, {
-      [query]: { followers: req.userId },
-    });
-    const user = await User.findByIdAndUpdate(
+    const other = await User.findByIdAndUpdate(
+      targetId,
+      {
+        [query]: { followers: req.userId },
+      },
+      { new: true }
+    );
+    const me = await User.findByIdAndUpdate(
       req.userId,
       {
         [query]: { followings: targetId },
       },
       { new: true }
     );
-    res.send({ followings: user.followings });
+    res.send({ followings: me.followings, followers: other.followers });
   } catch (error) {
     res.status(500).send(error.message);
   }
 });
 
 // bookmark
-router.patch("/bookmark", async (req, res) => {
+router.patch("/bookmark", auth, async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { postId, isMarked } = req.body;
     const query = isMarked ? "$pull" : "$push";
     const user = await User.findByIdAndUpdate(
@@ -247,9 +241,8 @@ router.post("/validate", async (req, res) => {
 });
 
 // add search history
-router.post("/history/search", async (req, res) => {
+router.post("/history/search", auth, async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { userId } = req.body;
     await User.findByIdAndUpdate(req.userId, {
       $push: { searchHistories: userId },
@@ -261,9 +254,8 @@ router.post("/history/search", async (req, res) => {
 });
 
 // get search history
-router.get("/history/search", async (req, res) => {
+router.get("/history/search", auth, async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const user = await User.findById(req.userId).populate({
       path: "searchHistories",
       select: "id name photoUrl desc",
@@ -275,9 +267,8 @@ router.get("/history/search", async (req, res) => {
 });
 
 // clear search history
-router.delete("/history/search", async (req, res) => {
+router.delete("/history/search", auth, async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const user = await User.findById(req.userId);
     user.searchHistories = [];
     await user.save();

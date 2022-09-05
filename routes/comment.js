@@ -1,10 +1,10 @@
 const express = require("express");
 const { Post, Comment } = require("../models");
+const auth = require("../middleware/authenticate");
 const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { postId, cursor, limit } = req.query;
     const post = await Post.findById(postId).populate({
       path: "comments",
@@ -22,9 +22,8 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", auth, async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { postId, contents } = req.body;
     const comment = await Comment.create({
       postId,
@@ -45,9 +44,8 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.delete("/:commentId", async (req, res) => {
+router.delete("/:commentId", auth, async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { commentId } = req.params;
     const { postId } = req.query;
     await Comment.findByIdAndRemove(commentId);
@@ -61,9 +59,8 @@ router.delete("/:commentId", async (req, res) => {
   }
 });
 
-router.patch("/:id/like", async (req, res) => {
+router.patch("/:id/like", auth, async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { id } = req.params;
     const { isLiked } = req.body;
     const comment = await Comment.findByIdAndUpdate(

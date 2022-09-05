@@ -2,6 +2,7 @@ const express = require("express");
 const { Post, User } = require("../models");
 const getHasNext = require("../utils/getHasNext.js");
 const upload = require("../middleware/upload.js");
+const auth = require("../middleware/authenticate");
 const s3 = require("../aws.js");
 
 const router = express.Router();
@@ -9,7 +10,6 @@ const Bucket = process.env.BUCKET;
 
 router.get("/", async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { cursor, limit } = req.query;
     const filter = cursor ? { _id: { $lt: cursor } } : {};
     const posts = await Post.find(filter)
@@ -24,9 +24,8 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/bookmark", async (req, res) => {
+router.get("/bookmark", auth, async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { cursor, limit } = req.query;
     const user = await User.findById(req.userId).populate({
       path: "bookmarks",
@@ -47,7 +46,6 @@ router.get("/bookmark", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { id } = req.params;
     const { cursor, limit } = req.query;
     const user = await User.findById(id).populate({
@@ -67,9 +65,8 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", upload.array("image"), async (req, res) => {
+router.post("/", auth, upload.array("image"), async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { ratio, texts } = req.body;
     const images = req.files.map((file) => ({
       url: file.location,
@@ -95,9 +92,8 @@ router.post("/", upload.array("image"), async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", auth, async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { id } = req.params;
     const post = await Post.findByIdAndRemove(id);
     await Promise.all(
@@ -115,9 +111,8 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", auth, async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { id } = req.params;
     const { texts, deletedKeys } = req.body;
     let post = await Post.findById(id);
@@ -142,9 +137,8 @@ router.patch("/:id", async (req, res) => {
   }
 });
 
-router.patch("/:id/like", async (req, res) => {
+router.patch("/:id/like", auth, async (req, res) => {
   try {
-    if (!req.sessionId) return res.status(401).send("세션이 만료되었습니다.");
     const { id } = req.params;
     const { isLiked } = req.body;
     const post = await Post.findByIdAndUpdate(

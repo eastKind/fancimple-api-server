@@ -244,10 +244,17 @@ router.post("/validate", async (req, res) => {
 router.post("/history/search", auth, async (req, res) => {
   try {
     const { userId } = req.body;
-    await User.findByIdAndUpdate(req.userId, {
-      $push: { searchHistories: userId },
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      {
+        $push: { searchHistories: userId },
+      },
+      { new: true }
+    ).populate({
+      path: "searchHistories",
+      select: "id name photoUrl desc",
     });
-    res.send();
+    res.send({ histories: user.searchHistories });
   } catch (error) {
     res.status(500).send(error.message);
   }
